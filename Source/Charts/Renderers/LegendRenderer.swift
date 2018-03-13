@@ -21,14 +21,14 @@ open class LegendRenderer: Renderer
 {
     /// the legend object this renderer renders
     @objc open var legend: Legend?
-
+    
     @objc public init(viewPortHandler: ViewPortHandler, legend: Legend?)
     {
         super.init(viewPortHandler: viewPortHandler)
         
         self.legend = legend
     }
-
+    
     /// Prepares the legend and calculates all needed forms, labels and colors.
     @objc open func computeLegend(data: ChartData)
     {
@@ -47,25 +47,41 @@ open class LegendRenderer: Renderer
                 let entryCount = dataSet.entryCount
                 
                 // if we have a barchart with stacked bars
-                if dataSet is IBarChartDataSet &&
-                    (dataSet as! IBarChartDataSet).isStacked
+                if dataSet is IBarChartDataSet
                 {
                     let bds = dataSet as! IBarChartDataSet
                     var sLabels = bds.stackLabels
                     
-                    for j in 0..<min(clrs.count, bds.stackSize)
-                    {
-                        entries.append(
-                            LegendEntry(
-                                label: sLabels[j % sLabels.count],
-                                form: dataSet.form,
-                                formSize: dataSet.formSize,
-                                formLineWidth: dataSet.formLineWidth,
-                                formLineDashPhase: dataSet.formLineDashPhase,
-                                formLineDashLengths: dataSet.formLineDashLengths,
-                                formColor: clrs[j]
+                    if bds.stackSize > 1{
+                        
+                        for j in 0..<min(clrs.count, bds.stackSize)
+                        {
+                            entries.append(
+                                LegendEntry(
+                                    label: sLabels[j % sLabels.count],
+                                    form: dataSet.form,
+                                    formSize: dataSet.formSize,
+                                    formLineWidth: dataSet.formLineWidth,
+                                    formLineDashPhase: dataSet.formLineDashPhase,
+                                    formLineDashLengths: dataSet.formLineDashLengths,
+                                    formColor: clrs[j]
+                                )
                             )
-                        )
+                        }
+                    }else{
+                        for j in 0..<clrs.count{
+                            entries.append(
+                                LegendEntry(
+                                    label: sLabels[j],
+                                    form: dataSet.form,
+                                    formSize: dataSet.formSize,
+                                    formLineWidth: dataSet.formLineWidth,
+                                    formLineDashPhase: dataSet.formLineDashPhase,
+                                    formLineDashLengths: dataSet.formLineDashLengths,
+                                    formColor: clrs[j]
+                                )
+                            )
+                        }
                     }
                     
                     if dataSet.label != nil
@@ -202,7 +218,7 @@ open class LegendRenderer: Renderer
         let labelTextColor = legend.textColor
         let labelLineHeight = labelFont.lineHeight
         let formYOffset = labelLineHeight / 2.0
-
+        
         var entries = legend.entries
         
         let defaultFormSize = legend.formSize
@@ -214,10 +230,10 @@ open class LegendRenderer: Renderer
         let horizontalAlignment = legend.horizontalAlignment
         let verticalAlignment = legend.verticalAlignment
         let direction = legend.direction
-
+        
         // space between the entries
         let stackSpace = legend.stackSpace
-
+        
         let yoffset = legend.yOffset
         let xoffset = legend.xOffset
         var originPosX: CGFloat = 0.0
@@ -269,8 +285,8 @@ open class LegendRenderer: Renderer
             }
             
             originPosX += (direction == .leftToRight
-                    ? +xoffset
-                    : -xoffset)
+                ? +xoffset
+                : -xoffset)
             
             // Horizontally layed out legends do the center offset on a line basis,
             // So here we offset the vertical ones only.
@@ -487,7 +503,7 @@ open class LegendRenderer: Renderer
             }
         }
     }
-
+    
     private var _formLineSegmentsBuffer = [CGPoint](repeating: CGPoint(), count: 2)
     
     /// Draws the Legend-form at the given position with the color at the given index.
@@ -561,10 +577,11 @@ open class LegendRenderer: Renderer
             context.strokeLineSegments(between: _formLineSegmentsBuffer)
         }
     }
-
+    
     /// Draws the provided label at the given position.
     @objc open func drawLabel(context: CGContext, x: CGFloat, y: CGFloat, label: String, font: NSUIFont, textColor: NSUIColor)
     {
         ChartUtils.drawText(context: context, text: label, point: CGPoint(x: x, y: y), align: .left, attributes: [NSAttributedStringKey.font: font, NSAttributedStringKey.foregroundColor: textColor])
     }
 }
+
